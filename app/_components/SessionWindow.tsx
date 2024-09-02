@@ -1,4 +1,4 @@
-export default function SessioWindow() {
+export default function SessionWindow() {
     return (
         <div>
             <button>+</button>
