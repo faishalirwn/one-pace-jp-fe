@@ -5,29 +5,43 @@ import React, { forwardRef, useRef, useState } from "react";
 import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
 
 async function uploadFile(
-    files: File[],
+    files: File[] | string,
+    fileType: string,
+    sessionId: string,
     uploadProgressCb: (progress: number) => void
 ) {
     try {
         const data = new FormData();
-        files.forEach((file) => {
-            data.append("files", file);
-        });
-        const res = await axios.post("http://127.0.0.1:8000/test", data, {
-            onUploadProgress: (progressEvent) => {
-                if (progressEvent.progress) {
-                    const progress = parseFloat(
-                        (progressEvent.progress * 100).toFixed(2)
-                    );
-                    uploadProgressCb(progress);
-                }
-            },
-        });
+        if (Array.isArray(files)) {
+            files.forEach((file) => {
+                data.append("files", file);
+            });
+        } else {
+            data.append("sub", files);
+
+            if (!files) {
+                console.log("manual sub is empty");
+                return;
+            }
+        }
+
+        const res = await axios.post(
+            `http://127.0.0.1:8000/files/${sessionId}/${fileType}`,
+            data,
+            {
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.progress) {
+                        const progress = parseFloat(
+                            (progressEvent.progress * 100).toFixed(2)
+                        );
+                        uploadProgressCb(progress);
+                    }
+                },
+            }
+        );
         return res.data.filename;
-        // TODO: from server standard way to say it succeed or failed, temporary true false
-        return true;
     } catch (error) {
-        return false;
+        return error;
     }
 }
 
@@ -36,6 +50,7 @@ type FileInputProps = {
     uploadProgress?: number;
     fileName?: string;
     isMultiple?: boolean;
+    accept: string;
 };
 
 const FileInput = forwardRef<
@@ -49,6 +64,8 @@ const FileInput = forwardRef<
         fileName = undefined,
         isMultiple = false,
         disabled,
+        required,
+        accept,
         onChange,
     },
     ref
@@ -61,17 +78,10 @@ const FileInput = forwardRef<
                 type="file"
                 name={name}
                 disabled={disabled}
-                // onChange={(e) => {
-                //     if (
-                //         onChange &&
-                //         e.target.files &&
-                //         e.target.files.length !== 0
-                //     ) {
-                //         onChange(e.target.files);
-                //     }
-                // }}
                 onChange={onChange}
                 multiple={isMultiple}
+                required={required}
+                accept={accept}
             />
             <div>
                 {uploadProgress !== 0 && uploadProgress !== 100 && (
@@ -83,112 +93,112 @@ const FileInput = forwardRef<
     );
 });
 
-interface FormValues {
-    audio: File;
-    oriSub: File;
-    refSub: File[];
-    refSubManual: number;
-}
+type FormKeys = "audio" | "original_sub" | "ref_sub" | "ref_sub_manual";
+
+type FormValues = {
+    [K in FormKeys]: K extends "ref_sub_manual" ? string : FileList;
+};
 
 export default function MainWindow() {
-    const { register, handleSubmit } = useForm<FormValues>();
+    const {
+        register,
+        handleSubmit,
+        resetField,
+        formState: { isSubmitting },
+    } = useForm<FormValues>();
 
-    const AUDIO_INPUT = "AUDIO";
-    const ORI_SUB_INPUT = "ORI";
-    const REF_SUB_INPUT = "REF";
+    const [uploadProgress, setUploadProgress] = useState<
+        Partial<Record<FormKeys, number>>
+    >({});
 
-    const inputsRef = useRef<{
-        [key: string]: HTMLInputElement | null;
-    }>({});
+    const [uploadedFiles, setUploadedFiles] = useState<
+        Partial<Record<FormKeys, string>>
+    >({});
 
-    const [disabledStates, setDisabledStates] = useState<{
-        [key: string]: boolean;
-    }>({});
-    const [uploadProgress, setUploadProgress] = useState<{
-        [key: string]: number;
-    }>({});
-    const [uploadedFiles, setUploadedFiles] = useState<{
-        [key: string]: string;
-    }>({});
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
+        for (const property in data) {
+            const key = property as keyof FormValues;
+            let fileToUpload: File[] | string;
 
-    const handleFileChange = async (inputName: string, files: FileList) => {
-        setDisabledStates((prev) => ({
-            ...prev,
-            [inputName]: true,
-        }));
-        const filename = await uploadFile(Array.from(files), (progress) => {
-            setUploadProgress((prev) => ({
+            if (data[key] instanceof FileList) {
+                fileToUpload = Array.from(data[key]);
+            } else {
+                fileToUpload = data[key];
+            }
+
+            // temp
+            const sessionId = "a424041a-c085-40a0-8b46-a41a2053afe5";
+
+            const filename = await uploadFile(
+                fileToUpload,
+                property,
+                sessionId,
+                (progress) => {
+                    setUploadProgress((prev) => ({
+                        ...prev,
+                        [property]: progress,
+                    }));
+                }
+            );
+
+            resetField(key);
+
+            console.log(filename);
+
+            setUploadedFiles((prev) => ({
                 ...prev,
-                [inputName]: progress,
+                [property]: filename,
             }));
-        });
-
-        if (inputsRef.current[inputName]) {
-            inputsRef.current[inputName].value = "";
         }
-
-        setUploadedFiles((prev) => ({
-            ...prev,
-            [inputName]: filename,
-        }));
-        setDisabledStates((prev) => ({
-            ...prev,
-            [inputName]: false,
-        }));
-    };
-
-    const setInputRef = (inputName: string) => {
-        return (element: HTMLInputElement | null) => {
-            inputsRef.current[inputName] = element;
-        };
-    };
-
-    const onSubmit: SubmitHandler<FormValues> = (data) => {
-        console.log(data);
     };
 
     return (
         <div>
             <form onSubmit={handleSubmit(onSubmit)}>
+                {/* TODO: upload success, filename returned, save it to local storage so when close tab or browser
+                when return to session it's saved. some way to remember */}
+                {/* TODO: if file already there aka remembering part seiko, 
+                - adjust the button text, just like the button text instruct
+                - can click if there are any changes on any field
+                - textarea content uses the returned value from server, saved in local storage too */}
                 <FileInput
-                    // name="audio"
                     label="Audio"
                     {...register("audio")}
-                    // ref={setInputRef(AUDIO_INPUT)}
-                    // isDisabled={disabledStates[AUDIO_INPUT]}
-                    // uploadProgress={uploadProgress[AUDIO_INPUT]}
-                    // fileName={uploadedFiles[AUDIO_INPUT]}
-                    // onChange={(files) => handleFileChange(AUDIO_INPUT, files)}
-                />
-                {/* <FileInput
-                    name="ori_sub"
-                    label="Ori Sub"
-                    ref={setInputRef(ORI_SUB_INPUT)}
-                    isDisabled={disabledStates[ORI_SUB_INPUT]}
-                    uploadProgress={uploadProgress[ORI_SUB_INPUT]}
-                    fileName={uploadedFiles[ORI_SUB_INPUT]}
-                    // onChange={(files) => handleFileChange(ORI_SUB_INPUT, files)}
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["audio"]}
+                    fileName={uploadedFiles["audio"]}
+                    required
+                    accept="audio/*"
                 />
                 <FileInput
-                    name="ref_sub"
+                    label="Ori Sub"
+                    {...register("original_sub")}
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["original_sub"]}
+                    fileName={uploadedFiles["original_sub"]}
+                    required
+                    accept=".srt,.ass"
+                />
+                <FileInput
                     label="Ref Sub"
-                    ref={setInputRef(REF_SUB_INPUT)}
+                    {...register("ref_sub")}
                     isMultiple
-                    isDisabled={disabledStates[REF_SUB_INPUT]}
-                    uploadProgress={uploadProgress[REF_SUB_INPUT]}
-                    fileName={uploadedFiles[REF_SUB_INPUT]}
-                    // onChange={(files) => handleFileChange(REF_SUB_INPUT, files)}
-                /> */}
-                <textarea name="ref_sub_manual"></textarea>
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["ref_sub"]}
+                    fileName={uploadedFiles["ref_sub"]}
+                    required
+                    accept=".srt,.ass"
+                />
+                <textarea
+                    {...register("ref_sub_manual")}
+                    disabled={isSubmitting}
+                ></textarea>
 
                 <div>
                     <label htmlFor="retranscribe">retranscribe</label>
                     <input type="checkbox" name="retranscribe" />
                 </div>
 
-                {/* TODO: client side storage check if input not all then cant click this
-            input is all if server said so which is get session and saved to localstorage or something
-            or after an upload if new session */}
                 <button type="submit" className="font-bold">
                     Upload & Process sub if file input not none Process sub if
                     file input none
