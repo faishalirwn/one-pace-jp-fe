@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import React, { forwardRef, useRef, useState } from "react";
+import React, { forwardRef, useState } from "react";
 import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
 
 async function uploadFile(
@@ -126,7 +126,7 @@ export default function MainWindow() {
                 fileToUpload = data[key];
             }
 
-            // temp
+            // TODO: temp
             const sessionId = "a424041a-c085-40a0-8b46-a41a2053afe5";
 
             const filename = await uploadFile(
