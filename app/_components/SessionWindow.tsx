@@ -3,7 +3,7 @@ import SessionList from "./session/SessionList";
 import { getSessions } from "../_lib/api";
 
 async function createSession() {
-    // const res = axios.post(`http://127.0.0.1:8000/session`)
+    // const res = axios.post(`${process.env.BASE_URL}/session`)
 }
 
 export default async function SessionWindow() {

@@ -18,9 +18,12 @@ export default function SessionList({ sessions }: { sessions: string[] }) {
     });
 
     useEffect(() => {
-        getSessions().then((sessions) => {
+        const updateSessions = async () => {
+            const sessions = await getSessions();
             setSessionList(sessions);
-        });
+        };
+
+        updateSessions();
     }, [pathname]);
 
     return <div className="flex flex-col">{sessionElList}</div>;

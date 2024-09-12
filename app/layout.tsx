@@ -18,10 +18,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.className} flex`}>
-                <SessionWindow />
-                <MainWindow />
-                {children}
+            <body className={inter.className}>
+                <div className="flex">
+                    <SessionWindow />
+                    {children}
+                </div>
             </body>
         </html>
     );
