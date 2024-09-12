@@ -1,6 +1,8 @@
 "use client";
 
 import axios from "axios";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React, { forwardRef, useState } from "react";
 import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
 
@@ -100,6 +102,9 @@ type FormValues = {
 };
 
 export default function MainWindow() {
+    const pathname = usePathname();
+    const router = useRouter();
+
     const {
         register,
         handleSubmit,
@@ -116,6 +121,13 @@ export default function MainWindow() {
     >({});
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
+        let sessionId = pathname.split("/")[1];
+        if (pathname === "/") {
+            const res = await axios.post(`http://127.0.0.1:8000/session`);
+            sessionId = res.data.session_id;
+
+            router.push(`/${sessionId}`);
+        }
         for (const property in data) {
             const key = property as keyof FormValues;
             let fileToUpload: File[] | string;
@@ -125,9 +137,6 @@ export default function MainWindow() {
             } else {
                 fileToUpload = data[key];
             }
-
-            // TODO: temp
-            const sessionId = "a424041a-c085-40a0-8b46-a41a2053afe5";
 
             const filename = await uploadFile(
                 fileToUpload,
@@ -143,8 +152,6 @@ export default function MainWindow() {
 
             resetField(key);
 
-            console.log(filename);
-
             setUploadedFiles((prev) => ({
                 ...prev,
                 [property]: filename,
@@ -155,12 +162,15 @@ export default function MainWindow() {
     return (
         <div>
             <form onSubmit={handleSubmit(onSubmit)}>
-                {/* TODO: upload success, filename returned, save it to local storage so when close tab or browser
+                {/* WRONG: upload success, filename returned, save it to local storage so when close tab or browser
                 when return to session it's saved. some way to remember */}
+                {/* RIGHT:
+                TODO: mainwindow get sessoin files all from server from url, on refresh server component, on nav from session use useeffect */}
                 {/* TODO: if file already there aka remembering part seiko, 
                 - adjust the button text, just like the button text instruct
                 - can click if there are any changes on any field
                 - textarea content uses the returned value from server, saved in local storage too */}
+                {/* TODO: check if session exist, if not then 404 or toast error */}
                 <FileInput
                     label="Audio"
                     {...register("audio")}

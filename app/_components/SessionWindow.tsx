@@ -1,20 +1,13 @@
-import axios, { AxiosResponse } from "axios";
-
-async function getSessions() {
-    const res = await axios.get(`http://127.0.0.1:8000/sessions`);
-    return res.data.session_list;
-}
+import Link from "next/link";
+import SessionList from "./session/SessionList";
+import { getSessions } from "../_lib/api";
 
 async function createSession() {
     // const res = axios.post(`http://127.0.0.1:8000/session`)
 }
 
 export default async function SessionWindow() {
-    const sessions = await getSessions();
-
-    const sessionElList = sessions.map((session: string) => {
-        return <div key={session}>{session}</div>;
-    });
+    const sessions: string[] = await getSessions();
 
     return (
         <div>
@@ -28,8 +21,10 @@ export default async function SessionWindow() {
             {/* Q: best use client usage why this why that */}
             {/* Q: best way to type response, wouldn't be too tedious to type everything, can we
             utilize swagger ui openapi docs */}
-            {/* <button onClick={createSession}>+</button> */}
-            <div>{sessionElList}</div>
+            <Link href="/" className="p-1.5 bg-white text-black rounded">
+                +
+            </Link>
+            <SessionList sessions={sessions} />
         </div>
     );
 }
