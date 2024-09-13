@@ -1,11 +1,49 @@
+import axios from "axios";
 import MainWindow from "../_components/MainWindow";
+import { notFound } from "next/navigation";
+import { paths } from "../_utils/api-types";
+import { FormInitialValues } from "../_utils/types";
 
-export default function SessionPage({
+async function getFiles(sessionId: string) {
+    const res = await axios.get<
+        paths["/files/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+    >(`${process.env.NEXT_PUBLIC_BASE_URL}/files/${sessionId}`);
+    return res.data.files as FormInitialValues;
+}
+
+async function getSub(sessionId: string) {
+    const res = await axios.get<
+        paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+    >(`${process.env.NEXT_PUBLIC_BASE_URL}/sub/${sessionId}`);
+    return res.data.transcription;
+}
+
+async function getSessionExist(sessionId: string) {
+    const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/session/${sessionId}`
+    );
+    return res.status === 200;
+}
+
+export default async function SessionPage({
     params,
 }: {
     params: {
         sessionId: string;
     };
 }) {
-    return <MainWindow sessionId={params.sessionId} />;
+    const sessionId = params.sessionId;
+    const isSessionExist = await getSessionExist(sessionId);
+
+    if (!isSessionExist) {
+        notFound();
+    }
+
+    const initialFiles = await getFiles(sessionId);
+
+    return (
+        <>
+            <MainWindow initialFiles={initialFiles} />
+        </>
+    );
 }

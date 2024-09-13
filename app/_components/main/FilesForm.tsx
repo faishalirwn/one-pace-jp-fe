@@ -1,5 +1,6 @@
 "use client";
 
+import { FormInitialValues, FormKeys, FormValues } from "@/app/_utils/types";
 import axios from "axios";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -98,16 +99,6 @@ const FileInput = forwardRef<
         </div>
     );
 });
-
-type FormKeys = "audio" | "original_sub" | "ref_sub" | "ref_sub_manual";
-
-type FormValues = {
-    [K in FormKeys]: K extends "ref_sub_manual" ? string : FileList;
-};
-
-type FormInitialValues = {
-    [K in FormKeys]: string;
-};
 
 export default function FilesForm({
     initialFiles,

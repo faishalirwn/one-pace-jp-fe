@@ -1,6 +1,6 @@
 import Link from "next/link";
 import SessionList from "./session/SessionList";
-import { getSessions } from "../_lib/api";
+import { getSessions } from "../_utils/api";
 
 async function createSession() {
     // const res = axios.post(`${process.env.BASE_URL}/session`)

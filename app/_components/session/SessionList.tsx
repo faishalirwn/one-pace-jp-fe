@@ -1,6 +1,6 @@
 "use client";
 
-import { getSessions } from "@/app/_lib/api";
+import { getSessions } from "@/app/_utils/api";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
