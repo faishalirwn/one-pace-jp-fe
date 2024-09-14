@@ -121,7 +121,12 @@ export default function FilesForm({
 
     const [uploadedFiles, setUploadedFiles] = useState<
         Partial<Record<FormKeys, string>>
-    >({});
+    >({
+        audio: initialFiles?.audio,
+        original_sub: initialFiles?.original_sub,
+        ref_sub: initialFiles?.ref_sub,
+        ref_sub_manual: initialFiles?.ref_sub_manual,
+    });
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         let sessionId = pathname.split("/")[1];
         if (pathname === "/") {
@@ -171,8 +176,7 @@ export default function FilesForm({
             {/* TODO: if file already there aka remembering part seiko, 
                 - adjust the button text, just like the button text instruct
                 - can click if there are any changes on any field
-                - textarea content uses the returned value from server, saved in local storage too */}
-            {/* TODO: check if session exist, if not then 404 or toast error */}
+                - textarea content uses the returned value from server */}
             <FileInput
                 label="Audio"
                 {...register("audio")}
@@ -203,6 +207,7 @@ export default function FilesForm({
             />
             <textarea
                 {...register("ref_sub_manual")}
+                defaultValue={uploadedFiles.ref_sub_manual}
                 disabled={isSubmitting}
             ></textarea>
 

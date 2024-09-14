@@ -19,10 +19,15 @@ async function getSub(sessionId: string) {
 }
 
 async function getSessionExist(sessionId: string) {
-    const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/session/${sessionId}`
-    );
-    return res.status === 200;
+    try {
+        const res = await axios.get<
+            paths["/sessions/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]
+        >(`${process.env.NEXT_PUBLIC_BASE_URL}/sessions/${sessionId}`);
+        return res.data.session_id === sessionId;
+    } catch (error) {
+        console.error("Session exist error:", error);
+        return error;
+    }
 }
 
 export default async function SessionPage({

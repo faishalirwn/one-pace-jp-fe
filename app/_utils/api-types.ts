@@ -190,7 +190,15 @@ export interface components {
              * @default Success
              */
             message: string;
-            /** Files */
+            /**
+             * Files
+             * @default {
+             *       "audio": "",
+             *       "original_sub": "",
+             *       "ref_sub": "",
+             *       "ref_sub_manual": ""
+             *     }
+             */
             files: {
                 [key: string]: string;
             };
@@ -199,14 +207,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /** Response */
-        Response: {
-            /**
-             * Message
-             * @default Success
-             */
-            message: string;
         };
         /** SaveSubReq */
         SaveSubReq: {
@@ -387,7 +387,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Response"];
+                    "application/json": components["schemas"]["SessionIdResponse"];
                 };
             };
             /** @description Validation Error */
