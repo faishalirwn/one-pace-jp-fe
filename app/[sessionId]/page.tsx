@@ -45,10 +45,11 @@ export default async function SessionPage({
     }
 
     const initialFiles = await getFiles(sessionId);
+    const sub = await getSub(sessionId);
 
     return (
         <>
-            <MainWindow initialFiles={initialFiles} />
+            <MainWindow sessionId={sessionId} initialFiles={initialFiles} />
         </>
     );
 }

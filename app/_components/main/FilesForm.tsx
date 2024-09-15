@@ -1,10 +1,11 @@
 "use client";
 
+import { paths } from "@/app/_utils/api-types";
 import { FormInitialValues, FormKeys, FormValues } from "@/app/_utils/types";
 import axios from "axios";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import React, { forwardRef, useState } from "react";
+import React, { Dispatch, forwardRef, SetStateAction, useState } from "react";
 import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
 
 async function uploadFile(
@@ -28,7 +29,9 @@ async function uploadFile(
             }
         }
 
-        const res = await axios.post(
+        const res = await axios.post<
+            paths["/files/{session_id}/{file_type}"]["post"]["responses"]["200"]["content"]["application/json"]
+        >(
             `${process.env.NEXT_PUBLIC_BASE_URL}/files/${sessionId}/${fileType}`,
             data,
             {
@@ -102,8 +105,10 @@ const FileInput = forwardRef<
 
 export default function FilesForm({
     initialFiles,
+    setIsProcessClicked,
 }: {
     initialFiles?: FormInitialValues;
+    setIsProcessClicked: Dispatch<SetStateAction<boolean>>;
 }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -130,9 +135,9 @@ export default function FilesForm({
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         let sessionId = pathname.split("/")[1];
         if (pathname === "/") {
-            const res = await axios.post(
-                `${process.env.NEXT_PUBLIC_BASE_URL}/session`
-            );
+            const res = await axios.post<
+                paths["/session"]["post"]["responses"]["200"]["content"]["application/json"]
+            >(`${process.env.NEXT_PUBLIC_BASE_URL}/session`);
             sessionId = res.data.session_id;
         }
         for (const property in data) {
@@ -164,6 +169,10 @@ export default function FilesForm({
                 [property]: filename,
             }));
         }
+        await axios.post<
+            paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
+        >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
+        setIsProcessClicked(true);
         router.push(`/${sessionId}`);
     };
 

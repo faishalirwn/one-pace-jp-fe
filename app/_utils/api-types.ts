@@ -208,6 +208,14 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Response */
+        Response: {
+            /**
+             * Message
+             * @default Success
+             */
+            message: string;
+        };
         /** SaveSubReq */
         SaveSubReq: {
             /** Transcription */
@@ -248,7 +256,16 @@ export interface components {
          * @description An enumeration.
          * @enum {string}
          */
-        Status: "Processing" | "Finished";
+        Status: "processing" | "finished" | "not_started";
+        /** StatusResponse */
+        StatusResponse: {
+            /**
+             * Message
+             * @default Success
+             */
+            message: string;
+            status: components["schemas"]["Status"];
+        };
         /** SubMatch */
         SubMatch: {
             /** Score */
@@ -469,7 +486,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["StatusResponse"];
                 };
             };
             /** @description Validation Error */
@@ -500,7 +517,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Response"];
                 };
             };
             /** @description Validation Error */
