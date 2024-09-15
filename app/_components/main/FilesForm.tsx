@@ -51,7 +51,7 @@ async function uploadFile(
         return res.data.filename;
     } catch (error) {
         console.error("Upload error:", error);
-        return error;
+        throw error;
     }
 }
 
@@ -133,55 +133,62 @@ export default function FilesForm({
         ref_sub_manual: initialFiles?.ref_sub_manual,
     });
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
-        let sessionId = pathname.split("/")[1];
-        if (pathname === "/") {
-            const res = await axios.post<
-                paths["/session"]["post"]["responses"]["200"]["content"]["application/json"]
-            >(`${process.env.NEXT_PUBLIC_BASE_URL}/session`);
-            sessionId = res.data.session_id;
-        }
-        for (const property in data) {
-            const key = property as keyof FormValues;
-            let fileToUpload: File[] | string;
-
-            if (data[key] instanceof FileList) {
-                fileToUpload = Array.from(data[key]);
-            } else {
-                fileToUpload = data[key];
+        try {
+            let sessionId = pathname.split("/")[1];
+            if (pathname === "/") {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_BASE_URL}/session`,
+                    {
+                        method: "post",
+                    }
+                );
+                const data: paths["/session"]["post"]["responses"]["200"]["content"]["application/json"] =
+                    await res.json();
+                sessionId = data.session_id;
             }
+            for (const property in data) {
+                const key = property as keyof FormValues;
+                let fileToUpload: File[] | string;
 
-            const filename = await uploadFile(
-                fileToUpload,
-                property,
-                sessionId,
-                (progress) => {
-                    setUploadProgress((prev) => ({
-                        ...prev,
-                        [property]: progress,
-                    }));
+                if (data[key] instanceof FileList) {
+                    fileToUpload = Array.from(data[key]);
+                } else {
+                    fileToUpload = data[key];
                 }
-            );
 
-            resetField(key);
+                const filename = await uploadFile(
+                    fileToUpload,
+                    property,
+                    sessionId,
+                    (progress) => {
+                        setUploadProgress((prev) => ({
+                            ...prev,
+                            [property]: progress,
+                        }));
+                    }
+                );
 
-            setUploadedFiles((prev) => ({
-                ...prev,
-                [property]: filename,
-            }));
+                if (key !== "ref_sub_manual") {
+                    resetField(key);
+                }
+
+                setUploadedFiles((prev) => ({
+                    ...prev,
+                    [property]: filename,
+                }));
+            }
+            await axios.post<
+                paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
+            >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
+            setIsProcessClicked(true);
+            router.push(`/${sessionId}`);
+        } catch (error) {
+            console.log("submit error", error);
         }
-        await axios.post<
-            paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
-        >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
-        setIsProcessClicked(true);
-        router.push(`/${sessionId}`);
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            {/* WRONG: upload success, filename returned, save it to local storage so when close tab or browser
-                when return to session it's saved. some way to remember */}
-            {/* RIGHT:
-                TODO: mainwindow get sessoin files all from server from url, on refresh server component, on nav from session use useeffect */}
             {/* TODO: if file already there aka remembering part seiko, 
                 - adjust the button text, just like the button text instruct
                 - can click if there are any changes on any field
@@ -215,6 +222,7 @@ export default function FilesForm({
                 accept=".srt,.ass"
             />
             <textarea
+                className="bg-black border-white border rounded"
                 {...register("ref_sub_manual")}
                 defaultValue={uploadedFiles.ref_sub_manual}
                 disabled={isSubmitting}
