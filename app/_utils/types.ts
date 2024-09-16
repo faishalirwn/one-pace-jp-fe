@@ -9,3 +9,7 @@ export type FormValues = {
 export type FormInitialValues = {
     [K in FormKeys]: string;
 };
+
+export type Transcription = paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]["transcription"];
+
+export type ProcessStatus = paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]["status"];

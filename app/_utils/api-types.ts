@@ -4,23 +4,6 @@
  */
 
 export interface paths {
-    "/test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Test */
-        post: operations["test_test_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/sessions": {
         parameters: {
             query?: never;
@@ -165,11 +148,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_test_test_post */
-        Body_test_test_post: {
-            /** Files */
-            files: string[];
-        };
         /** Body_upload_files_files__session_id___file_type__post */
         Body_upload_files_files__session_id___file_type__post: {
             /** Files */
@@ -281,6 +259,8 @@ export interface components {
             start_time: string;
             /** End Time */
             end_time: string;
+            /** Ori Text */
+            ori_text: string;
             /** Text */
             text: string;
             /** Matches */
@@ -334,39 +314,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    test_test_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": components["schemas"]["Body_test_test_post"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UploadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_sessions_sessions_get: {
         parameters: {
             query?: never;

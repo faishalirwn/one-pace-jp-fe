@@ -181,6 +181,7 @@ export default function FilesForm({
                 paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
             >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
             setIsProcessClicked(true);
+            console.log("FilesForm set true");
             router.push(`/${sessionId}`);
         } catch (error) {
             console.log("submit error", error);
