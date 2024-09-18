@@ -41,21 +41,21 @@ export default async function SessionPage({
     const initialFiles = await getFiles(sessionId);
 
     const processStatusRes = await getProcessStatus(sessionId);
-    const processStatus = processStatusRes.status;
+    const initialProcessStatus = processStatusRes.status;
 
-    let transcription;
+    let initialTranscription;
 
-    if (processStatus === "finished") {
+    if (initialProcessStatus === "finished") {
         const transcriptionRes = await getSub(sessionId);
-        transcription = transcriptionRes.transcription;
+        initialTranscription = transcriptionRes.transcription;
     }
 
     return (
         <MainWindow
             sessionId={sessionId}
             initialFiles={initialFiles}
-            initialTranscription={transcription}
-            initialProcessStatus={processStatus}
+            initialTranscription={initialTranscription}
+            initialProcessStatus={initialProcessStatus}
         />
     );
 }

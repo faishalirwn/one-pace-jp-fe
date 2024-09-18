@@ -276,7 +276,10 @@ export interface components {
         SubMatchesPartial: {
             /** Match */
             match?: string;
-            /** Merge */
+            /**
+             * Merge
+             * @default false
+             */
             merge: boolean;
         };
         /** TranscriptionResponse */
@@ -532,7 +535,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Response"];
                 };
             };
             /** @description Validation Error */

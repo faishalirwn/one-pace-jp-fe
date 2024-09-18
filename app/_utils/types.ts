@@ -13,3 +13,5 @@ export type FormInitialValues = {
 export type Transcription = paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]["transcription"];
 
 export type ProcessStatus = paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]["status"];
+
+export type SubMatches = paths["/sub/{session_id}"]["put"]["requestBody"]["content"]["application/json"]["transcription"];

@@ -9,7 +9,9 @@ import { useEffect, useState } from "react";
 async function deleteSession(sessionId: string) {
     return await fetchData<
         paths["/sessions/{session_id}"]["delete"]["responses"]["200"]["content"]["application/json"]
-    >(`/sessions/${sessionId}`, "DELETE");
+    >(`/sessions/${sessionId}`, {
+        method: "DELETE",
+    });
 }
 
 export default function SessionList({ sessions }: { sessions: string[] }) {

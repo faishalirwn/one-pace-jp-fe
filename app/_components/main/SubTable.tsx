@@ -37,6 +37,29 @@ export default function SubTable({
     const [transcription, setTranscription] =
         useState<Transcription>(initialTranscription);
 
+    const updateTranscriptionRow = (
+        transcription: Transcription,
+        rowIndex: number,
+        newMatch: string,
+        newMerge: boolean
+    ): Transcription => {
+        if (!transcription) return transcription;
+
+        return {
+            ...transcription,
+            transcription: transcription.transcription.map((row, index) => {
+                if (index === rowIndex) {
+                    return {
+                        ...row,
+                        match: newMatch,
+                        merge: newMerge,
+                    };
+                }
+                return row;
+            }),
+        };
+    };
+
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
@@ -66,6 +89,29 @@ export default function SubTable({
         };
     }, [isProcessClicked, processStatus, sessionId, setIsProcessClicked]);
 
+    useEffect(() => {
+        const saveSub = async () => {
+            if (transcription) {
+                const subMatches = transcription.transcription.map((row) => {
+                    return (({ match, merge }) => ({ match, merge }))(row);
+                });
+                await fetchData<
+                    paths["/sub/{session_id}"]["put"]["responses"]["200"]["content"]["application/json"]
+                >(`/sub/${sessionId}`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        transcription: subMatches,
+                    }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+            }
+        };
+
+        saveSub();
+    }, [sessionId, transcription]);
+
     return (
         <>
             {processStatus === "processing" && (
@@ -90,23 +136,105 @@ export default function SubTable({
                             </tr>
                         </thead>
                         <tbody>
-                            {transcription?.transcription.map((row) => {
-                                const matches = row.matches
-                                    .map((match) => match.matched_text)
-                                    .join(", ");
+                            {transcription?.transcription.map((row, index) => {
+                                let matches;
+                                if (row.matches.length === 0) {
+                                    matches = <span>None</span>;
+                                } else {
+                                    matches = row.matches.map((match) => {
+                                        return (
+                                            <span
+                                                className="rounded border-white border p-1 cursor-pointer"
+                                                onClick={() => {
+                                                    setTranscription(
+                                                        (prevTranscription) =>
+                                                            updateTranscriptionRow(
+                                                                prevTranscription,
+                                                                index,
+                                                                match.matched_text,
+                                                                row.merge
+                                                            )
+                                                    );
+                                                }}
+                                                key={`${row.ori_text}${match.matched_text}`}
+                                            >
+                                                {match.matched_text}
+                                            </span>
+                                        );
+                                    });
+                                }
+
+                                const matchesContainer = (
+                                    <div>
+                                        {row.matches.length !== 0 && (
+                                            <>
+                                                <div className="flex items-center">
+                                                    <label
+                                                        htmlFor={`merge-${index}`}
+                                                    >
+                                                        Merge with next row
+                                                    </label>
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`merge-${index}`}
+                                                        id={`merge-${index}`}
+                                                        checked={row.merge}
+                                                        onChange={(e) => {
+                                                            setTranscription(
+                                                                (
+                                                                    prevTranscription
+                                                                ) =>
+                                                                    updateTranscriptionRow(
+                                                                        prevTranscription,
+                                                                        index,
+                                                                        row.match,
+                                                                        e.target
+                                                                            .checked
+                                                                    )
+                                                            );
+                                                        }}
+                                                    />
+                                                </div>
+                                                <input
+                                                    className="bg-black border border-white rounded p-1"
+                                                    name="match"
+                                                    type="text"
+                                                    value={row.match ?? ""}
+                                                    onChange={(e) => {
+                                                        setTranscription(
+                                                            (
+                                                                prevTranscription
+                                                            ) =>
+                                                                updateTranscriptionRow(
+                                                                    prevTranscription,
+                                                                    index,
+                                                                    e.target
+                                                                        .value,
+                                                                    row.merge
+                                                                )
+                                                        );
+                                                    }}
+                                                />
+                                            </>
+                                        )}
+                                        <div className="flex flex-wrap gap-2">
+                                            {matches}
+                                        </div>
+                                    </div>
+                                );
+
                                 return (
-                                    <tr key={row.start_time}>
+                                    <tr key={row.ori_text}>
                                         <td>{row.start_time}</td>
                                         <td>{row.end_time}</td>
                                         <td>{row.ori_text}</td>
                                         <td>{row.text}</td>
-                                        <td>{matches}</td>
+                                        <td>{matchesContainer}</td>
                                     </tr>
                                 );
                             })}
                         </tbody>
                     </table>
-                    <button>Save Sub</button>
                     <Link
                         href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
                     >
