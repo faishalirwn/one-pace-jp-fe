@@ -175,7 +175,7 @@ export default function FilesForm({
 
                 setUploadedFiles((prev) => ({
                     ...prev,
-                    [key]: prev[key] + filenameString,
+                    [key]: filenameString,
                 }));
             }
             await axios.post<

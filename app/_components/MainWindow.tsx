@@ -37,9 +37,6 @@ export default function MainWindow({
                         isProcessClicked={isProcessClicked}
                         setIsProcessClicked={setIsProcessClicked}
                     />
-
-                    <p>Get Sub</p>
-                    <p>...</p>
                 </>
             )}
         </div>

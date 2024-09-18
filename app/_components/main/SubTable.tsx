@@ -1,7 +1,9 @@
 "use client";
 
-import { getProcessStatus, getSub } from "@/app/_utils/api";
+import { fetchData, getProcessStatus, getSub } from "@/app/_utils/api";
+import { paths } from "@/app/_utils/api-types";
 import { ProcessStatus, Transcription } from "@/app/_utils/types";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 const statusMessages: Record<ProcessStatus, string> = {
@@ -104,6 +106,12 @@ export default function SubTable({
                             })}
                         </tbody>
                     </table>
+                    <button>Save Sub</button>
+                    <Link
+                        href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
+                    >
+                        Download Sub
+                    </Link>
                 </>
             )}
         </>

@@ -1,9 +1,10 @@
 import { paths } from "./api-types";
 
-const fetchData = async <T>(endpoint: string): Promise<T> => {
+export const fetchData = async <T>(endpoint: string, method:RequestInit["method"] = "GET", useCache: boolean = false): Promise<T> => {
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${endpoint}`, {
-            cache: "no-cache",
+            cache: useCache ?  undefined: "no-cache",
+            method,
         });
         if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
