@@ -4,7 +4,8 @@ import { fetchData, getProcessStatus, getSub } from "@/app/_utils/api";
 import { paths } from "@/app/_utils/api-types";
 import { ProcessStatus, Transcription } from "@/app/_utils/types";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import VideoPreview, { VideoPreviewRef } from "./VideoPreview";
 
 const statusMessages: Record<ProcessStatus, string> = {
     processing: "Task is in progress...",
@@ -112,6 +113,27 @@ export default function SubTable({
         saveSub();
     }, [sessionId, transcription]);
 
+    const videoRef = useRef<VideoPreviewRef>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    // const [currentTime, setCurrentTime] = useState(0);
+
+    const togglePlay = (time: number) => {
+        // handleTimeUpdate(1000);
+        videoRef.current?.setCurrentTime(time / 1000);
+        if (!isPlaying) {
+            // if (videoRef.current?.isPaused) {
+            videoRef.current?.play();
+            setIsPlaying(true);
+        } else {
+            setIsPlaying(false);
+            videoRef.current?.pause();
+        }
+    };
+
+    // const handleTimeUpdate = (time: number) => {
+    //     setCurrentTime(time);
+    // };
+
     return (
         <>
             {processStatus === "processing" && (
@@ -123,11 +145,15 @@ export default function SubTable({
 
             <p>{`processStatus = ${processStatus}`}</p>
             <p>{`transcription = ${transcription}`}</p>
+
+            <VideoPreview ref={videoRef} />
+
             {processStatus === "finished" && (
                 <>
                     <table>
                         <thead>
                             <tr>
+                                <th></th>
                                 <th>start time</th>
                                 <th>end time</th>
                                 <th>ori text</th>
@@ -225,6 +251,17 @@ export default function SubTable({
 
                                 return (
                                     <tr key={row.ori_text}>
+                                        <td>
+                                            <button
+                                                onClick={() => {
+                                                    togglePlay(
+                                                        parseInt(row.start_time)
+                                                    );
+                                                }}
+                                            >
+                                                Play
+                                            </button>
+                                        </td>
                                         <td>{row.start_time}</td>
                                         <td>{row.end_time}</td>
                                         <td>{row.ori_text}</td>
