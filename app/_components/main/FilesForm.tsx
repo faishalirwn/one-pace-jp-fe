@@ -167,7 +167,7 @@ export default function FilesForm({
                     }
                 );
 
-                const filenameString = uploadFileRes?.filename?.join(",") || "";
+                const filename = uploadFileRes?.filename;
 
                 if (key !== "ref_sub_manual") {
                     resetField(key);
@@ -175,7 +175,7 @@ export default function FilesForm({
 
                 setUploadedFiles((prev) => ({
                     ...prev,
-                    [key]: filenameString,
+                    [key]: filename,
                 }));
             }
             await axios.post<

@@ -32,7 +32,8 @@ export interface paths {
         get: operations["get_is_session_exist_sessions__session_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete Session */
+        delete: operations["delete_session_sessions__session_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -50,23 +51,6 @@ export interface paths {
         /** Create Session */
         post: operations["create_session_session_post"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/session/{session_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Session */
-        delete: operations["delete_session_session__session_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -101,8 +85,24 @@ export interface paths {
         get: operations["get_sub_sub__session_id__get"];
         /** Save Sub */
         put: operations["save_sub_sub__session_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/download-sub/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         /** Download Sub */
-        post: operations["download_sub_sub__session_id__post"];
+        get: operations["download_sub_download_sub__session_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -137,8 +137,7 @@ export interface paths {
         put?: never;
         /** Upload Files */
         post: operations["upload_files_files__session_id___file_type__post"];
-        /** Delete File */
-        delete: operations["delete_file_files__session_id___file_type__delete"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -173,8 +172,7 @@ export interface components {
              * @default {
              *       "audio": "",
              *       "original_sub": "",
-             *       "ref_sub": "",
-             *       "ref_sub_manual": ""
+             *       "ref_sub": ""
              *     }
              */
             files: {
@@ -369,27 +367,7 @@ export interface operations {
             };
         };
     };
-    create_session_session_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionIdResponse"];
-                };
-            };
-        };
-    };
-    delete_session_session__session_id__delete: {
+    delete_session_sessions__session_id__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -406,7 +384,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionIdResponse"];
                 };
             };
             /** @description Validation Error */
@@ -416,6 +394,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_session_session_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionIdResponse"];
                 };
             };
         };
@@ -548,7 +546,7 @@ export interface operations {
             };
         };
     };
-    download_sub_sub__session_id__post: {
+    download_sub_download_sub__session_id__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -633,40 +631,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_file_files__session_id___file_type__delete: {
-        parameters: {
-            query: {
-                filename: string;
-            };
-            header?: never;
-            path: {
-                session_id: string;
-                file_type: components["schemas"]["FileTypes"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
