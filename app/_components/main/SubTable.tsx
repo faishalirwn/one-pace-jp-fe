@@ -2,7 +2,7 @@
 
 import { getProcessStatus, getSub } from "@/app/_utils/api";
 import { ProcessStatus, Transcription } from "@/app/_utils/types";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 const statusMessages: Record<ProcessStatus, string> = {
     processing: "Task is in progress...",
@@ -18,10 +18,14 @@ export default function SubTable({
     sessionId,
     initialTranscription,
     initialProcessStatus,
+    isProcessClicked,
+    setIsProcessClicked,
 }: {
     sessionId: string;
     initialTranscription: Transcription;
     initialProcessStatus: ProcessStatus;
+    isProcessClicked: boolean;
+    setIsProcessClicked: Dispatch<SetStateAction<boolean>>;
 }) {
     const [processStatus, setProcessStatus] =
         useState<ProcessStatus>(initialProcessStatus);
@@ -34,7 +38,7 @@ export default function SubTable({
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
-        if (processStatus === "processing") {
+        if (processStatus === "processing" || isProcessClicked) {
             intervalId = setInterval(async () => {
                 const statusRes = await getProcessStatus(sessionId);
                 const status = statusRes.status;
@@ -46,6 +50,7 @@ export default function SubTable({
                     const newTranscriptionRes = await getSub(sessionId);
                     const newTranscription = newTranscriptionRes.transcription;
                     setTranscription(newTranscription);
+                    setIsProcessClicked(false);
                 } else {
                     setProcessStatus(status);
                 }
@@ -57,7 +62,7 @@ export default function SubTable({
                 clearInterval(intervalId);
             }
         };
-    }, [processStatus, sessionId]);
+    }, [isProcessClicked, processStatus, sessionId, setIsProcessClicked]);
 
     return (
         <>

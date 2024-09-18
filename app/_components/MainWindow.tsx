@@ -1,11 +1,12 @@
 "use client";
 
+import FilesForm from "./main/FilesForm";
 import {
     FormInitialValues,
     ProcessStatus,
     Transcription,
 } from "../_utils/types";
-import FilesForm from "./main/FilesForm";
+import { useState } from "react";
 import SubTable from "./main/SubTable";
 
 export default function MainWindow({
@@ -19,15 +20,22 @@ export default function MainWindow({
     initialTranscription?: Transcription;
     initialProcessStatus?: ProcessStatus;
 }) {
+    const [isProcessClicked, setIsProcessClicked] = useState(false);
+
     return (
         <div>
-            <FilesForm initialFiles={initialFiles} />
+            <FilesForm
+                initialFiles={initialFiles}
+                setIsProcessClicked={setIsProcessClicked}
+            />
             {sessionId && initialProcessStatus && (
                 <>
                     <SubTable
                         sessionId={sessionId}
                         initialTranscription={initialTranscription}
                         initialProcessStatus={initialProcessStatus}
+                        isProcessClicked={isProcessClicked}
+                        setIsProcessClicked={setIsProcessClicked}
                     />
 
                     <p>Get Sub</p>

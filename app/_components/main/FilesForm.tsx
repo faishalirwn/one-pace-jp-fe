@@ -3,10 +3,9 @@
 import { paths } from "@/app/_utils/api-types";
 import { FormInitialValues, FormKeys, FormValues } from "@/app/_utils/types";
 import axios from "axios";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
-import React, { forwardRef, useState } from "react";
-import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
+import { usePathname, useRouter } from "next/navigation";
+import { Dispatch, forwardRef, SetStateAction, useState } from "react";
+import { SubmitHandler, useForm, UseFormRegister } from "react-hook-form";
 
 async function uploadFile(
     payload: File[] | string,
@@ -48,7 +47,7 @@ async function uploadFile(
                 },
             }
         );
-        return res.data.filename;
+        return res.data;
     } catch (error) {
         console.error("Upload error:", error);
         throw error;
@@ -105,8 +104,10 @@ const FileInput = forwardRef<
 
 export default function FilesForm({
     initialFiles,
+    setIsProcessClicked,
 }: {
     initialFiles?: FormInitialValues;
+    setIsProcessClicked: Dispatch<SetStateAction<boolean>>;
 }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -154,17 +155,19 @@ export default function FilesForm({
                     fileToUpload = data[key];
                 }
 
-                const filename = await uploadFile(
+                const uploadFileRes = await uploadFile(
                     fileToUpload,
-                    property,
+                    key,
                     sessionId,
                     (progress) => {
                         setUploadProgress((prev) => ({
                             ...prev,
-                            [property]: progress,
+                            [key]: progress,
                         }));
                     }
                 );
+
+                const filenameString = uploadFileRes?.filename?.join(",") || "";
 
                 if (key !== "ref_sub_manual") {
                     resetField(key);
@@ -172,12 +175,13 @@ export default function FilesForm({
 
                 setUploadedFiles((prev) => ({
                     ...prev,
-                    [property]: filename,
+                    [key]: prev[key] + filenameString,
                 }));
             }
             await axios.post<
                 paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
             >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
+            setIsProcessClicked(true);
             router.push(`/${sessionId}`);
         } catch (error) {
             console.log("submit error", error);
