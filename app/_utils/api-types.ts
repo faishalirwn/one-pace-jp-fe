@@ -243,6 +243,10 @@ export interface components {
              */
             message: string;
             status: components["schemas"]["Status"];
+            /** Processed */
+            processed: number;
+            /** Total */
+            total: number;
         };
         /** SubMatch */
         SubMatch: {
