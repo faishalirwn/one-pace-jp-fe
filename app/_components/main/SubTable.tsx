@@ -25,6 +25,9 @@ export default function SubTable({
 }) {
     const [processStatus, setProcessStatus] =
         useState<ProcessStatus>(initialProcessStatus);
+    const [processedLines, setProcessedLines] = useState<[number, number]>([
+        0, 0,
+    ]);
     const [transcription, setTranscription] =
         useState<Transcription>(initialTranscription);
 
@@ -35,6 +38,7 @@ export default function SubTable({
             intervalId = setInterval(async () => {
                 const statusRes = await getProcessStatus(sessionId);
                 const status = statusRes.status;
+                setProcessedLines([statusRes.processed, statusRes.total]);
 
                 if (status === "finished") {
                     clearInterval(intervalId);
@@ -58,7 +62,10 @@ export default function SubTable({
     return (
         <>
             {processStatus === "processing" && (
-                <p>{getStatusMessage(processStatus)}</p>
+                <>
+                    <p>{getStatusMessage(processStatus)}</p>
+                    <p>{`${processedLines[0]}, ${processedLines[1]}`}</p>
+                </>
             )}
 
             <p>{`processStatus = ${processStatus}`}</p>
