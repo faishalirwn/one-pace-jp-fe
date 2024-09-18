@@ -19,7 +19,8 @@ export default function SessionList({ sessions }: { sessions: string[] }) {
 
     useEffect(() => {
         const updateSessions = async () => {
-            const sessions = await getSessions();
+            const sessionsRes = await getSessions();
+            const sessions = sessionsRes.session_list;
             setSessionList(sessions);
         };
 

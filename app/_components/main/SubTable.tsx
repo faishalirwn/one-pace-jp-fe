@@ -33,12 +33,14 @@ export default function SubTable({
 
         if (processStatus === "processing") {
             intervalId = setInterval(async () => {
-                const status = await getProcessStatus(sessionId);
+                const statusRes = await getProcessStatus(sessionId);
+                const status = statusRes.status;
 
                 if (status === "finished") {
                     clearInterval(intervalId);
                     setProcessStatus(status);
-                    const newTranscription = await getSub(sessionId);
+                    const newTranscriptionRes = await getSub(sessionId);
+                    const newTranscription = newTranscriptionRes.transcription;
                     setTranscription(newTranscription);
                 } else {
                     setProcessStatus(status);

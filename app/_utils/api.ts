@@ -1,40 +1,28 @@
-import axios from "axios";
 import { paths } from "./api-types";
 
-export const getSessions = async function() {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/sessions`);
-    return res.data.session_list;
-}
-
-export const getProcessStatus = async function(sessionId: string) {
+const fetchData = async <T>(endpoint: string): Promise<T> => {
     try {
-        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`, {
-                cache: "no-cache"
-            }
-        );
-        const data: paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"] =
-            await res.json();
-        return data.status;
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${endpoint}`, {
+            cache: "no-cache",
+        });
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return await res.json() as T;
     } catch (error) {
-        console.error("Get process status error", error);
+        console.error(`Error fetching ${endpoint}`, error);
         throw error;
     }
-}
+};
 
+export const getSessions = async () => {
+    return await fetchData<paths["/sessions"]["get"]["responses"]["200"]["content"]["application/json"]>('/sessions');
+};
 
-export const getSub = async function(sessionId: string) {
-    try {
-        const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/sub/${sessionId}`, {
-                cache: "no-cache"
-            }
-        );
-        const data: paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"] =
-            await res.json();
-        return data.transcription;
-    } catch (error) {
-        console.error("Get sub", error);
-        throw error;
-    }
-}
+export const getProcessStatus = async (sessionId: string) => {
+    return await fetchData<paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]>(`/process-sub/${sessionId}`);
+};
+
+export const getSub = async (sessionId: string) => {
+    return await fetchData<paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]>(`/sub/${sessionId}`);
+};

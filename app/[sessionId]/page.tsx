@@ -40,12 +40,14 @@ export default async function SessionPage({
 
     const initialFiles = await getFiles(sessionId);
 
-    const processStatus = await getProcessStatus(sessionId);
+    const processStatusRes = await getProcessStatus(sessionId);
+    const processStatus = processStatusRes.status;
 
     let transcription;
 
     if (processStatus === "finished") {
-        transcription = await getSub(sessionId);
+        const transcriptionRes = await getSub(sessionId);
+        transcription = transcriptionRes.transcription;
     }
 
     return (

@@ -22,10 +22,6 @@ export default function MainWindow({
     return (
         <div>
             <FilesForm initialFiles={initialFiles} />
-            {/* TODO: The problem is filesform redirects and rerenders all from the server component including the state,
-            on sessionId route it only rerenders mainwindow and preserve the state
-            - REMOVE isProcessClicked. just use transcription status.
-             */}
             {sessionId && initialProcessStatus && (
                 <>
                     <SubTable

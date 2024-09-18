@@ -7,7 +7,8 @@ async function createSession() {
 }
 
 export default async function SessionWindow() {
-    const sessions: string[] = await getSessions();
+    const sessionsRes = await getSessions();
+    const sessions = sessionsRes.session_list;
 
     return (
         <div>
