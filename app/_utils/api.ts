@@ -9,7 +9,9 @@ export const getSessions = async function() {
 export const getProcessStatus = async function(sessionId: string) {
     try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`
+            `${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`, {
+                cache: "no-cache"
+            }
         );
         const data: paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"] =
             await res.json();
@@ -24,7 +26,9 @@ export const getProcessStatus = async function(sessionId: string) {
 export const getSub = async function(sessionId: string) {
     try {
         const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/sub/${sessionId}`
+            `${process.env.NEXT_PUBLIC_BASE_URL}/sub/${sessionId}`, {
+                cache: "no-cache"
+            }
         );
         const data: paths["/sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"] =
             await res.json();

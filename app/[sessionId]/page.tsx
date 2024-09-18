@@ -49,13 +49,11 @@ export default async function SessionPage({
     }
 
     return (
-        <>
-            <MainWindow
-                sessionId={sessionId}
-                initialFiles={initialFiles}
-                initialTranscription={transcription}
-                initialProcessStatus={processStatus}
-            />
-        </>
+        <MainWindow
+            sessionId={sessionId}
+            initialFiles={initialFiles}
+            initialTranscription={transcription}
+            initialProcessStatus={processStatus}
+        />
     );
 }

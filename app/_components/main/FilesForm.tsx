@@ -5,7 +5,7 @@ import { FormInitialValues, FormKeys, FormValues } from "@/app/_utils/types";
 import axios from "axios";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import React, { Dispatch, forwardRef, SetStateAction, useState } from "react";
+import React, { forwardRef, useState } from "react";
 import { useForm, UseFormRegister, SubmitHandler } from "react-hook-form";
 
 async function uploadFile(
@@ -105,10 +105,8 @@ const FileInput = forwardRef<
 
 export default function FilesForm({
     initialFiles,
-    setIsProcessClicked,
 }: {
     initialFiles?: FormInitialValues;
-    setIsProcessClicked: Dispatch<SetStateAction<boolean>>;
 }) {
     const pathname = usePathname();
     const router = useRouter();
@@ -180,8 +178,6 @@ export default function FilesForm({
             await axios.post<
                 paths["/process-sub/{session_id}"]["post"]["responses"]["200"]["content"]["application/json"]
             >(`${process.env.NEXT_PUBLIC_BASE_URL}/process-sub/${sessionId}`);
-            setIsProcessClicked(true);
-            console.log("FilesForm set true");
             router.push(`/${sessionId}`);
         } catch (error) {
             console.log("submit error", error);
@@ -190,10 +186,8 @@ export default function FilesForm({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            {/* TODO: if file already there aka remembering part seiko, 
-                - adjust the button text, just like the button text instruct
-                - can click if there are any changes on any field
-                - textarea content uses the returned value from server */}
+            {/* TODO: - adjust the button text, just like the button text instruct
+                - can click if there are any changes on any field */}
             <FileInput
                 label="Audio"
                 {...register("audio")}

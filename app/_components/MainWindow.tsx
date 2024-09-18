@@ -1,42 +1,37 @@
 "use client";
 
-import FilesForm from "./main/FilesForm";
 import {
     FormInitialValues,
     ProcessStatus,
     Transcription,
 } from "../_utils/types";
-import { useState } from "react";
+import FilesForm from "./main/FilesForm";
 import SubTable from "./main/SubTable";
 
 export default function MainWindow({
     sessionId,
     initialFiles,
     initialTranscription,
-    initialProcessStatus,
+    initialProcessStatus = "not_started",
 }: {
     sessionId?: string;
     initialFiles?: FormInitialValues;
     initialTranscription?: Transcription;
     initialProcessStatus?: ProcessStatus;
 }) {
-    const [isProcessClicked, setIsProcessClicked] = useState(false);
-    console.log("MainWindow", isProcessClicked);
-
     return (
         <div>
-            <FilesForm
-                initialFiles={initialFiles}
-                setIsProcessClicked={setIsProcessClicked}
-            />
+            <FilesForm initialFiles={initialFiles} />
+            {/* TODO: The problem is filesform redirects and rerenders all from the server component including the state,
+            on sessionId route it only rerenders mainwindow and preserve the state
+            - REMOVE isProcessClicked. just use transcription status.
+             */}
             {sessionId && initialProcessStatus && (
                 <>
                     <SubTable
                         sessionId={sessionId}
-                        isProcessClicked={isProcessClicked}
                         initialTranscription={initialTranscription}
                         initialProcessStatus={initialProcessStatus}
-                        setIsProcessClicked={setIsProcessClicked}
                     />
 
                     <p>Get Sub</p>
