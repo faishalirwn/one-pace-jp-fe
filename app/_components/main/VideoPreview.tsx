@@ -9,6 +9,7 @@ import React, {
 
 export interface VideoPreviewProps {
     endTime: number;
+    onFileChange: (src: string) => void;
 }
 
 export interface VideoPreviewRef {
@@ -18,7 +19,7 @@ export interface VideoPreviewRef {
 }
 
 const VideoPreview = forwardRef<VideoPreviewRef, VideoPreviewProps>(
-    ({ endTime }, ref) => {
+    ({ onFileChange, endTime }, ref) => {
         const [videoSrc, setVideoSrc] = useState<string>("");
         const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -46,6 +47,7 @@ const VideoPreview = forwardRef<VideoPreviewRef, VideoPreviewProps>(
             if (file) {
                 const blobURL = URL.createObjectURL(file);
                 setVideoSrc(blobURL);
+                onFileChange(blobURL);
             }
         };
 
@@ -71,7 +73,7 @@ const VideoPreview = forwardRef<VideoPreviewRef, VideoPreviewProps>(
         }, [endTime]);
 
         return (
-            <div>
+            <div className="inline-block">
                 <input
                     type="file"
                     onChange={handleFileChange}

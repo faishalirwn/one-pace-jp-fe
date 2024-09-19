@@ -38,6 +38,7 @@ export default function SubTable({
     const [transcription, setTranscription] =
         useState<Transcription>(initialTranscription);
     const [videoEndTime, setVideoEndTime] = useState(0);
+    const [isVideoExist, setIsVideoExist] = useState(false);
 
     const videoPlayerRef = useRef<VideoPreviewRef>(null);
 
@@ -47,6 +48,10 @@ export default function SubTable({
             videoPlayerRef.current.setCurrentTime(startTime);
             videoPlayerRef.current.playVideo();
         }
+    };
+
+    const handleVideoFileChange = (src: string) => {
+        setIsVideoExist(src !== "");
     };
 
     const updateTranscriptionRow = (
@@ -136,8 +141,12 @@ export default function SubTable({
             <p>{`processStatus = ${processStatus}`}</p>
             <p>{`transcription = ${transcription}`}</p>
 
-            <div className="sticky top-0">
-                <VideoPreview ref={videoPlayerRef} endTime={videoEndTime} />
+            <div className="sticky top-0 inline-block">
+                <VideoPreview
+                    ref={videoPlayerRef}
+                    endTime={videoEndTime}
+                    onFileChange={handleVideoFileChange}
+                />
             </div>
 
             {processStatus === "finished" && (
@@ -145,7 +154,8 @@ export default function SubTable({
                     <table>
                         <thead>
                             <tr>
-                                <th></th>
+                                {isVideoExist && <th></th>}
+
                                 <th>start time</th>
                                 <th>end time</th>
                                 <th>ori text</th>
@@ -231,21 +241,24 @@ export default function SubTable({
 
                                 return (
                                     <tr key={row.ori_text}>
-                                        <td>
-                                            <button
-                                                onClick={() => {
-                                                    handlePlayClick(
-                                                        parseInt(
-                                                            row.start_time
-                                                        ) / 1000,
-                                                        parseInt(row.end_time) /
-                                                            1000
-                                                    );
-                                                }}
-                                            >
-                                                Play
-                                            </button>
-                                        </td>
+                                        {isVideoExist && (
+                                            <td>
+                                                <button
+                                                    onClick={() => {
+                                                        handlePlayClick(
+                                                            parseInt(
+                                                                row.start_time
+                                                            ) / 1000,
+                                                            parseInt(
+                                                                row.end_time
+                                                            ) / 1000
+                                                        );
+                                                    }}
+                                                >
+                                                    Play
+                                                </button>
+                                            </td>
+                                        )}
                                         <td>{row.start_time}</td>
                                         <td>{row.end_time}</td>
                                         <td>{row.ori_text}</td>
