@@ -37,6 +37,17 @@ export default function SubTable({
     ]);
     const [transcription, setTranscription] =
         useState<Transcription>(initialTranscription);
+    const [videoEndTime, setVideoEndTime] = useState(0);
+
+    const videoPlayerRef = useRef<VideoPreviewRef>(null);
+
+    const handlePlayClick = (startTime: number, endTime: number) => {
+        if (videoPlayerRef.current) {
+            setVideoEndTime(endTime);
+            videoPlayerRef.current.setCurrentTime(startTime);
+            videoPlayerRef.current.playVideo();
+        }
+    };
 
     const updateTranscriptionRow = (
         transcription: Transcription,
@@ -113,27 +124,6 @@ export default function SubTable({
         saveSub();
     }, [sessionId, transcription]);
 
-    const videoRef = useRef<VideoPreviewRef>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    // const [currentTime, setCurrentTime] = useState(0);
-
-    const togglePlay = (time: number) => {
-        // handleTimeUpdate(1000);
-        videoRef.current?.setCurrentTime(time / 1000);
-        if (!isPlaying) {
-            // if (videoRef.current?.isPaused) {
-            videoRef.current?.play();
-            setIsPlaying(true);
-        } else {
-            setIsPlaying(false);
-            videoRef.current?.pause();
-        }
-    };
-
-    // const handleTimeUpdate = (time: number) => {
-    //     setCurrentTime(time);
-    // };
-
     return (
         <>
             {processStatus === "processing" && (
@@ -146,7 +136,9 @@ export default function SubTable({
             <p>{`processStatus = ${processStatus}`}</p>
             <p>{`transcription = ${transcription}`}</p>
 
-            <VideoPreview ref={videoRef} />
+            <div className="sticky top-0">
+                <VideoPreview ref={videoPlayerRef} endTime={videoEndTime} />
+            </div>
 
             {processStatus === "finished" && (
                 <>
@@ -192,57 +184,45 @@ export default function SubTable({
 
                                 const matchesContainer = (
                                     <div>
-                                        {row.matches.length !== 0 && (
-                                            <>
-                                                <div className="flex items-center">
-                                                    <label
-                                                        htmlFor={`merge-${index}`}
-                                                    >
-                                                        Merge with next row
-                                                    </label>
-                                                    <input
-                                                        type="checkbox"
-                                                        name={`merge-${index}`}
-                                                        id={`merge-${index}`}
-                                                        checked={row.merge}
-                                                        onChange={(e) => {
-                                                            setTranscription(
-                                                                (
-                                                                    prevTranscription
-                                                                ) =>
-                                                                    updateTranscriptionRow(
-                                                                        prevTranscription,
-                                                                        index,
-                                                                        row.match,
-                                                                        e.target
-                                                                            .checked
-                                                                    )
-                                                            );
-                                                        }}
-                                                    />
-                                                </div>
-                                                <input
-                                                    className="bg-black border border-white rounded p-1"
-                                                    name="match"
-                                                    type="text"
-                                                    value={row.match ?? ""}
-                                                    onChange={(e) => {
-                                                        setTranscription(
-                                                            (
-                                                                prevTranscription
-                                                            ) =>
-                                                                updateTranscriptionRow(
-                                                                    prevTranscription,
-                                                                    index,
-                                                                    e.target
-                                                                        .value,
-                                                                    row.merge
-                                                                )
-                                                        );
-                                                    }}
-                                                />
-                                            </>
-                                        )}
+                                        <div className="flex items-center">
+                                            <label htmlFor={`merge-${index}`}>
+                                                Merge with next row
+                                            </label>
+                                            <input
+                                                type="checkbox"
+                                                name={`merge-${index}`}
+                                                id={`merge-${index}`}
+                                                checked={row.merge}
+                                                onChange={(e) => {
+                                                    setTranscription(
+                                                        (prevTranscription) =>
+                                                            updateTranscriptionRow(
+                                                                prevTranscription,
+                                                                index,
+                                                                row.match,
+                                                                e.target.checked
+                                                            )
+                                                    );
+                                                }}
+                                            />
+                                        </div>
+                                        <input
+                                            className="bg-black border border-white rounded p-1"
+                                            name="match"
+                                            type="text"
+                                            value={row.match ?? ""}
+                                            onChange={(e) => {
+                                                setTranscription(
+                                                    (prevTranscription) =>
+                                                        updateTranscriptionRow(
+                                                            prevTranscription,
+                                                            index,
+                                                            e.target.value,
+                                                            row.merge
+                                                        )
+                                                );
+                                            }}
+                                        />
                                         <div className="flex flex-wrap gap-2">
                                             {matches}
                                         </div>
@@ -254,8 +234,12 @@ export default function SubTable({
                                         <td>
                                             <button
                                                 onClick={() => {
-                                                    togglePlay(
-                                                        parseInt(row.start_time)
+                                                    handlePlayClick(
+                                                        parseInt(
+                                                            row.start_time
+                                                        ) / 1000,
+                                                        parseInt(row.end_time) /
+                                                            1000
                                                     );
                                                 }}
                                             >

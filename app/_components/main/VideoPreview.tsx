@@ -4,32 +4,39 @@ import React, {
     useImperativeHandle,
     forwardRef,
     ChangeEvent,
+    useEffect,
 } from "react";
 
 export interface VideoPreviewProps {
-    onTimeUpdate?: (currentTime: number) => void;
-    isPlaying?: boolean;
+    endTime: number;
 }
 
 export interface VideoPreviewRef {
-    isPaused: boolean;
-    play: () => void;
-    pause: () => void;
-    setCurrentTime: (time: number) => void;
+    playVideo: () => void;
+    pauseVideo: () => void;
+    setCurrentTime: (startTime: number) => void;
 }
 
 const VideoPreview = forwardRef<VideoPreviewRef, VideoPreviewProps>(
-    ({ onTimeUpdate, isPlaying = false }, ref) => {
+    ({ endTime }, ref) => {
         const [videoSrc, setVideoSrc] = useState<string>("");
         const videoRef = useRef<HTMLVideoElement>(null);
 
+        // Allow parent component to control play functionality
         useImperativeHandle(ref, () => ({
-            isPaused: videoRef.current?.paused || true,
-            play: () => videoRef.current?.play,
-            pause: () => videoRef.current?.pause(),
-            setCurrentTime: (time: number) => {
+            playVideo() {
                 if (videoRef.current) {
-                    videoRef.current.currentTime = time;
+                    videoRef.current.play();
+                }
+            },
+            pauseVideo() {
+                if (videoRef.current) {
+                    videoRef.current.pause();
+                }
+            },
+            setCurrentTime(startTime: number) {
+                if (videoRef.current) {
+                    videoRef.current.currentTime = startTime; // Start at specified time
                 }
             },
         }));
@@ -42,30 +49,26 @@ const VideoPreview = forwardRef<VideoPreviewRef, VideoPreviewProps>(
             }
         };
 
-        React.useEffect(() => {
+        useEffect(() => {
             const videoElement = videoRef.current;
-            if (videoElement) {
-                if (isPlaying) {
-                    videoElement.play();
-                } else {
-                    videoElement.pause();
-                }
-            }
-        }, [isPlaying]);
 
-        // React.useEffect(() => {
-        //     const videoElement = videoRef.current;
-        //     if (videoElement && onTimeUpdate) {
-        //         const handleTimeUpdate = () =>
-        //             onTimeUpdate(videoElement.currentTime);
-        //         videoElement.addEventListener("timeupdate", handleTimeUpdate);
-        //         return () =>
-        //             videoElement.removeEventListener(
-        //                 "timeupdate",
-        //                 handleTimeUpdate
-        //             );
-        //     }
-        // }, [onTimeUpdate]);
+            if (videoElement) {
+                const handleTimeUpdate = () => {
+                    if (videoElement.currentTime >= endTime) {
+                        videoElement.pause();
+                    }
+                };
+
+                videoElement.addEventListener("timeupdate", handleTimeUpdate);
+
+                return () => {
+                    videoElement.removeEventListener(
+                        "timeupdate",
+                        handleTimeUpdate
+                    );
+                };
+            }
+        }, [endTime]);
 
         return (
             <div>
