@@ -80,8 +80,10 @@ const FileInput = forwardRef<
     ref
 ) {
     return (
-        <div>
-            <label htmlFor={name}>{label}</label>
+        <div className="flex-1">
+            <div>
+                <label htmlFor={name}>{label}</label>
+            </div>
             <input
                 ref={ref}
                 type="file"
@@ -190,52 +192,56 @@ export default function FilesForm({
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            {/* TODO: - adjust the button text, just like the button text instruct
-                - can click if there are any changes on any field */}
-            <FileInput
-                label="Audio"
-                {...register("audio")}
-                disabled={isSubmitting}
-                uploadProgress={uploadProgress["audio"]}
-                fileName={uploadedFiles["audio"]}
-                required
-                accept="audio/*"
-            />
-            <FileInput
-                label="Ori Sub"
-                {...register("original_sub")}
-                disabled={isSubmitting}
-                uploadProgress={uploadProgress["original_sub"]}
-                fileName={uploadedFiles["original_sub"]}
-                required
-                accept=".srt,.ass"
-            />
-            <FileInput
-                label="Ref Sub"
-                {...register("ref_sub")}
-                isMultiple
-                disabled={isSubmitting}
-                uploadProgress={uploadProgress["ref_sub"]}
-                fileName={uploadedFiles["ref_sub"]}
-                required
-                accept=".srt,.ass"
-            />
-            <textarea
-                className="bg-black border-white border rounded"
-                {...register("ref_sub_manual")}
-                defaultValue={uploadedFiles.ref_sub_manual}
-                disabled={isSubmitting}
-            ></textarea>
-
-            <div>
-                <label htmlFor="retranscribe">retranscribe</label>
-                <input type="checkbox" name="retranscribe" />
+            <div className="flex">
+                <FileInput
+                    label="Audio"
+                    {...register("audio")}
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["audio"]}
+                    fileName={uploadedFiles["audio"]}
+                    required
+                    accept="audio/*"
+                />
+                <FileInput
+                    label="Ori Sub"
+                    {...register("original_sub")}
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["original_sub"]}
+                    fileName={uploadedFiles["original_sub"]}
+                    required
+                    accept=".srt,.ass"
+                />
+                <FileInput
+                    label="Ref Sub"
+                    {...register("ref_sub")}
+                    isMultiple
+                    disabled={isSubmitting}
+                    uploadProgress={uploadProgress["ref_sub"]}
+                    fileName={uploadedFiles["ref_sub"]}
+                    required
+                    accept=".srt,.ass"
+                />
+                <textarea
+                    className="bg-black border-white border rounded p-1"
+                    {...register("ref_sub_manual")}
+                    defaultValue={uploadedFiles.ref_sub_manual}
+                    disabled={isSubmitting}
+                ></textarea>
             </div>
 
-            <button type="submit" className="font-bold">
-                Upload & Process sub if file input not none Process sub if file
-                input none
-            </button>
+            {/* <div>
+                <label htmlFor="retranscribe">retranscribe</label>
+                <input type="checkbox" name="retranscribe" />
+            </div> */}
+
+            <div className="flex justify-center">
+                <button
+                    type="submit"
+                    className="font-bold border border-white p-1 rounded"
+                >
+                    Upload & Process Sub
+                </button>
+            </div>
         </form>
     );
 }

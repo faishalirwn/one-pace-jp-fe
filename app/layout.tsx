@@ -19,8 +19,10 @@ export default function RootLayout({
         <html lang="en">
             <body className={inter.className}>
                 <div className="flex">
-                    <SessionWindow />
-                    {children}
+                    <div className="w-[10%]">
+                        <SessionWindow />
+                    </div>
+                    <div className="w-[89%]">{children}</div>
                 </div>
             </body>
         </html>

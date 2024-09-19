@@ -27,14 +27,19 @@ export default function SessionList({ sessions }: { sessions: string[] }) {
 
     const sessionElList = sessionList.map((session: string) => {
         return (
-            <div key={session}>
+            <div key={session} className="flex items-center">
                 <Link href={session}>{session}</Link>
                 <button
                     onClick={async () => {
-                        await deleteSession(session);
-                        updateSessions();
-                        if (pathname.split("/")[1] === session) {
-                            router.push("/");
+                        const deleteIntent = confirm(
+                            "Do you want to delete the session?"
+                        );
+                        if (deleteIntent) {
+                            await deleteSession(session);
+                            updateSessions();
+                            if (pathname.split("/")[1] === session) {
+                                router.push("/");
+                            }
                         }
                     }}
                 >

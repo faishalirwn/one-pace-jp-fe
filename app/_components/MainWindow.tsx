@@ -23,7 +23,7 @@ export default function MainWindow({
     const [isProcessClicked, setIsProcessClicked] = useState(false);
 
     return (
-        <div>
+        <div className="p-2">
             <FilesForm
                 initialFiles={initialFiles}
                 setIsProcessClicked={setIsProcessClicked}

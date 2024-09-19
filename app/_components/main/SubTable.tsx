@@ -131,17 +131,26 @@ export default function SubTable({
 
     return (
         <>
-            {processStatus === "processing" && (
-                <>
-                    <p>{getStatusMessage(processStatus)}</p>
-                    <p>{`${processedLines[0]}, ${processedLines[1]}`}</p>
-                </>
-            )}
+            <div className="flex flex-col justify-center items-center mt-5">
+                {processStatus === "processing" && (
+                    <>
+                        <p>{getStatusMessage(processStatus)}</p>
+                        <p>{`${processedLines[0]}, ${processedLines[1]}`}</p>
+                    </>
+                )}
 
-            <p>{`processStatus = ${processStatus}`}</p>
-            <p>{`transcription = ${transcription}`}</p>
+                {/* <p>{`processStatus = ${processStatus}`}</p>
+            <p>{`transcription = ${transcription}`}</p> */}
 
+                <Link
+                    href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
+                    className="border border-white rounded p-1"
+                >
+                    Download Sub
+                </Link>
+            </div>
             <div className="sticky top-0 inline-block">
+                <p>Local Video Preview</p>
                 <VideoPreview
                     ref={videoPlayerRef}
                     endTime={videoEndTime}
@@ -156,14 +165,14 @@ export default function SubTable({
                             <tr>
                                 {isVideoExist && <th></th>}
 
-                                <th>start time</th>
-                                <th>end time</th>
-                                <th>ori text</th>
-                                <th>transcription</th>
-                                <th>match</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Original Sub</th>
+                                <th>Transcription</th>
+                                <th>Matched Subs</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="align-top">
                             {transcription?.transcription.map((row, index) => {
                                 let matches;
                                 if (row.matches.length === 0) {
@@ -194,45 +203,54 @@ export default function SubTable({
 
                                 const matchesContainer = (
                                     <div>
-                                        <div className="flex items-center">
-                                            <label htmlFor={`merge-${index}`}>
-                                                Merge with next row
-                                            </label>
-                                            <input
-                                                type="checkbox"
-                                                name={`merge-${index}`}
-                                                id={`merge-${index}`}
-                                                checked={row.merge}
+                                        <div className="flex justify-center gap-x-2 mb-2">
+                                            <div className="flex items-center gap-x-2">
+                                                <label
+                                                    htmlFor={`merge-${index}`}
+                                                >
+                                                    Merge
+                                                </label>
+                                                <input
+                                                    type="checkbox"
+                                                    name={`merge-${index}`}
+                                                    id={`merge-${index}`}
+                                                    checked={row.merge}
+                                                    onChange={(e) => {
+                                                        setTranscription(
+                                                            (
+                                                                prevTranscription
+                                                            ) =>
+                                                                updateTranscriptionRow(
+                                                                    prevTranscription,
+                                                                    index,
+                                                                    row.match,
+                                                                    e.target
+                                                                        .checked
+                                                                )
+                                                        );
+                                                    }}
+                                                />
+                                            </div>
+                                            <textarea
+                                                className="bg-black border border-white rounded p-1"
+                                                name="match"
+                                                rows={3}
+                                                cols={60}
+                                                value={row.match ?? ""}
                                                 onChange={(e) => {
                                                     setTranscription(
                                                         (prevTranscription) =>
                                                             updateTranscriptionRow(
                                                                 prevTranscription,
                                                                 index,
-                                                                row.match,
-                                                                e.target.checked
+                                                                e.target.value,
+                                                                row.merge
                                                             )
                                                     );
                                                 }}
-                                            />
+                                            ></textarea>
                                         </div>
-                                        <input
-                                            className="bg-black border border-white rounded p-1"
-                                            name="match"
-                                            type="text"
-                                            value={row.match ?? ""}
-                                            onChange={(e) => {
-                                                setTranscription(
-                                                    (prevTranscription) =>
-                                                        updateTranscriptionRow(
-                                                            prevTranscription,
-                                                            index,
-                                                            e.target.value,
-                                                            row.merge
-                                                        )
-                                                );
-                                            }}
-                                        />
+
                                         <div className="flex flex-wrap gap-2">
                                             {matches}
                                         </div>
@@ -242,7 +260,7 @@ export default function SubTable({
                                 return (
                                     <tr key={row.ori_text}>
                                         {isVideoExist && (
-                                            <td>
+                                            <td className="p-2">
                                                 <button
                                                     onClick={() => {
                                                         handlePlayClick(
@@ -259,21 +277,20 @@ export default function SubTable({
                                                 </button>
                                             </td>
                                         )}
-                                        <td>{row.start_time}</td>
-                                        <td>{row.end_time}</td>
-                                        <td>{row.ori_text}</td>
-                                        <td>{row.text}</td>
-                                        <td>{matchesContainer}</td>
+                                        <td className="p-2">
+                                            {row.start_time}
+                                        </td>
+                                        <td className="p-2">{row.end_time}</td>
+                                        <td className="p-2">{row.ori_text}</td>
+                                        <td className="p-2">{row.text}</td>
+                                        <td className="p-2">
+                                            {matchesContainer}
+                                        </td>
                                     </tr>
                                 );
                             })}
                         </tbody>
                     </table>
-                    <Link
-                        href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
-                    >
-                        Download Sub
-                    </Link>
                 </>
             )}
         </>
