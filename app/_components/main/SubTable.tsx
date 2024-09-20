@@ -254,35 +254,34 @@ export default function SubTable({
                     </>
                 )}
 
-                {/* <p>{`processStatus = ${processStatus}`}</p>
-            <p>{`transcription = ${transcription}`}</p> */}
-
-                <div className="flex gap-x-2">
-                    <button
-                        onClick={saveTranscription}
-                        className="border border-white rounded p-1"
-                    >
-                        Save Changes
-                    </button>
-                    <Link
-                        href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
-                        className="border border-white rounded p-1"
-                    >
-                        Download Sub
-                    </Link>
-                </div>
-            </div>
-            <div className="sticky top-0 inline-block">
-                <p>Local Video Preview</p>
-                <VideoPreview
-                    ref={videoPlayerRef}
-                    endTime={videoEndTime}
-                    onFileChange={handleVideoFileChange}
-                />
+                {processStatus === "finished" && (
+                    <div className="flex gap-x-2">
+                        <button
+                            onClick={saveTranscription}
+                            className="border border-white rounded p-1"
+                        >
+                            Save Changes
+                        </button>
+                        <Link
+                            href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
+                            className="border border-white rounded p-1"
+                        >
+                            Download Sub
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {processStatus === "finished" && (
                 <>
+                    <div className="sticky top-0 inline-block">
+                        <p>Local Video Preview</p>
+                        <VideoPreview
+                            ref={videoPlayerRef}
+                            endTime={videoEndTime}
+                            onFileChange={handleVideoFileChange}
+                        />
+                    </div>
                     <table>
                         <thead>
                             <tr>
