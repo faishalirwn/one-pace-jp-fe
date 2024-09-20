@@ -2,9 +2,22 @@
 
 import { fetchData, getProcessStatus, getSub } from "@/app/_utils/api";
 import { paths } from "@/app/_utils/api-types";
-import { ProcessStatus, Transcription } from "@/app/_utils/types";
+import {
+    ProcessStatus,
+    SubMatches,
+    SubMatchesPartial,
+    Transcription,
+} from "@/app/_utils/types";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+    Dispatch,
+    memo,
+    SetStateAction,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import VideoPreview, { VideoPreviewRef } from "./VideoPreview";
 
 const statusMessages: Record<ProcessStatus, string> = {
@@ -16,6 +29,106 @@ const statusMessages: Record<ProcessStatus, string> = {
 function getStatusMessage(status: ProcessStatus) {
     return statusMessages[status] || "Unknown status, please wait...";
 }
+
+interface TranscriptionRowProps {
+    rowData: SubMatches;
+    rowIndex: number;
+    isVideoExist: boolean;
+    onRowUpdate: (rowIndex: number, updatedRow: SubMatches) => void;
+    handlePlayClick: (startTime: number, endTime: number) => void;
+}
+
+const TranscriptionRow = memo(
+    ({
+        rowData,
+        rowIndex,
+        isVideoExist,
+        onRowUpdate,
+        handlePlayClick,
+    }: TranscriptionRowProps) => {
+        const [localRow, setLocalRow] = useState(rowData);
+
+        const handleMatchChange = (newMatch: string) => {
+            setLocalRow((prevRow) => ({ ...prevRow, match: newMatch }));
+            onRowUpdate(rowIndex, { ...localRow, match: newMatch });
+        };
+
+        const handleMergeChange = (newMerge: boolean) => {
+            setLocalRow((prevRow) => ({ ...prevRow, merge: newMerge }));
+            onRowUpdate(rowIndex, { ...localRow, merge: newMerge });
+        };
+
+        const matches =
+            rowData.matches.length === 0 ? (
+                <span>None</span>
+            ) : (
+                rowData.matches.map((match) => (
+                    <span
+                        className="rounded border-white border p-1 cursor-pointer"
+                        onClick={() => handleMatchChange(match.matched_text)}
+                        key={`${rowData.ori_text}${match.matched_text}`}
+                    >
+                        {match.matched_text}
+                    </span>
+                ))
+            );
+
+        return (
+            <tr>
+                {isVideoExist && (
+                    <td className="p-2">
+                        <button
+                            onClick={() =>
+                                handlePlayClick(
+                                    parseInt(rowData.start_time) / 1000,
+                                    parseInt(rowData.end_time) / 1000
+                                )
+                            }
+                        >
+                            Play
+                        </button>
+                    </td>
+                )}
+                <td className="p-2">{rowData.start_time}</td>
+                <td className="p-2">{rowData.end_time}</td>
+                <td className="p-2">{rowData.ori_text}</td>
+                <td className="p-2">{rowData.text}</td>
+                <td className="p-2">
+                    <div>
+                        <div className="flex justify-center gap-x-2 mb-2">
+                            <div className="flex items-center gap-x-2">
+                                <label htmlFor={`merge-${rowIndex}`}>
+                                    Merge
+                                </label>
+                                <input
+                                    type="checkbox"
+                                    name={`merge-${rowIndex}`}
+                                    id={`merge-${rowIndex}`}
+                                    onChange={(e) =>
+                                        handleMergeChange(e.target.checked)
+                                    }
+                                />
+                            </div>
+                            <textarea
+                                className="bg-black border border-white rounded p-1"
+                                name="match"
+                                rows={3}
+                                cols={60}
+                                value={localRow.match ?? ""}
+                                onChange={(e) =>
+                                    handleMatchChange(e.target.value)
+                                }
+                            ></textarea>
+                        </div>
+                        <div className="flex flex-wrap gap-2">{matches}</div>
+                    </div>
+                </td>
+            </tr>
+        );
+    }
+);
+
+TranscriptionRow.displayName = "TranscriptionRow";
 
 export default function SubTable({
     sessionId,
@@ -37,10 +150,21 @@ export default function SubTable({
     ]);
     const [transcription, setTranscription] =
         useState<Transcription>(initialTranscription);
+    const [transcriptionRows, setTranscriptionRows] = useState<
+        SubMatches[] | undefined
+    >(transcription?.transcription);
     const [videoEndTime, setVideoEndTime] = useState(0);
     const [isVideoExist, setIsVideoExist] = useState(false);
 
     const videoPlayerRef = useRef<VideoPreviewRef>(null);
+    const updatedRowsRef = useRef<{ [key: number]: SubMatches }>({});
+
+    const handleRowUpdate = useCallback(
+        (rowIndex: number, updatedRow: SubMatches) => {
+            updatedRowsRef.current[rowIndex] = updatedRow;
+        },
+        []
+    );
 
     const handlePlayClick = (startTime: number, endTime: number) => {
         if (videoPlayerRef.current) {
@@ -54,27 +178,41 @@ export default function SubTable({
         setIsVideoExist(src !== "");
     };
 
-    const updateTranscriptionRow = (
-        transcription: Transcription,
-        rowIndex: number,
-        newMatch: string,
-        newMerge: boolean
-    ): Transcription => {
-        if (!transcription) return transcription;
+    const saveTranscription = async () => {
+        if (!transcription) return;
 
-        return {
-            ...transcription,
-            transcription: transcription.transcription.map((row, index) => {
-                if (index === rowIndex) {
-                    return {
-                        ...row,
-                        match: newMatch,
-                        merge: newMerge,
-                    };
-                }
-                return row;
+        const updatedTranscription = transcription.transcription.map(
+            (row, index) => updatedRowsRef.current[index] || row
+        );
+
+        setTranscription((prev) => {
+            if (!prev) return;
+
+            return {
+                ...prev,
+                transcription: updatedTranscription,
+            };
+        });
+
+        const subMatches = updatedTranscription.map((row) => ({
+            match: row.match,
+            merge: row.merge,
+        }));
+
+        await fetchData<
+            paths["/sub/{session_id}"]["put"]["responses"]["200"]["content"]["application/json"]
+        >(`/sub/${sessionId}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                transcription: subMatches,
             }),
-        };
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        // Clear the updatedRowsRef after saving
+        updatedRowsRef.current = {};
     };
 
     useEffect(() => {
@@ -106,29 +244,6 @@ export default function SubTable({
         };
     }, [isProcessClicked, processStatus, sessionId, setIsProcessClicked]);
 
-    useEffect(() => {
-        const saveSub = async () => {
-            if (transcription) {
-                const subMatches = transcription.transcription.map((row) => {
-                    return (({ match, merge }) => ({ match, merge }))(row);
-                });
-                await fetchData<
-                    paths["/sub/{session_id}"]["put"]["responses"]["200"]["content"]["application/json"]
-                >(`/sub/${sessionId}`, {
-                    method: "PUT",
-                    body: JSON.stringify({
-                        transcription: subMatches,
-                    }),
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-            }
-        };
-
-        saveSub();
-    }, [sessionId, transcription]);
-
     return (
         <>
             <div className="flex flex-col justify-center items-center mt-5">
@@ -142,12 +257,20 @@ export default function SubTable({
                 {/* <p>{`processStatus = ${processStatus}`}</p>
             <p>{`transcription = ${transcription}`}</p> */}
 
-                <Link
-                    href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
-                    className="border border-white rounded p-1"
-                >
-                    Download Sub
-                </Link>
+                <div className="flex gap-x-2">
+                    <button
+                        onClick={saveTranscription}
+                        className="border border-white rounded p-1"
+                    >
+                        Save Changes
+                    </button>
+                    <Link
+                        href={`${process.env.NEXT_PUBLIC_BASE_URL}/download-sub/${sessionId}`}
+                        className="border border-white rounded p-1"
+                    >
+                        Download Sub
+                    </Link>
+                </div>
             </div>
             <div className="sticky top-0 inline-block">
                 <p>Local Video Preview</p>
@@ -173,122 +296,16 @@ export default function SubTable({
                             </tr>
                         </thead>
                         <tbody className="align-top">
-                            {transcription?.transcription.map((row, index) => {
-                                let matches;
-                                if (row.matches.length === 0) {
-                                    matches = <span>None</span>;
-                                } else {
-                                    matches = row.matches.map((match) => {
-                                        return (
-                                            <span
-                                                className="rounded border-white border p-1 cursor-pointer"
-                                                onClick={() => {
-                                                    setTranscription(
-                                                        (prevTranscription) =>
-                                                            updateTranscriptionRow(
-                                                                prevTranscription,
-                                                                index,
-                                                                match.matched_text,
-                                                                row.merge
-                                                            )
-                                                    );
-                                                }}
-                                                key={`${row.ori_text}${match.matched_text}`}
-                                            >
-                                                {match.matched_text}
-                                            </span>
-                                        );
-                                    });
-                                }
-
-                                const matchesContainer = (
-                                    <div>
-                                        <div className="flex justify-center gap-x-2 mb-2">
-                                            <div className="flex items-center gap-x-2">
-                                                <label
-                                                    htmlFor={`merge-${index}`}
-                                                >
-                                                    Merge
-                                                </label>
-                                                <input
-                                                    type="checkbox"
-                                                    name={`merge-${index}`}
-                                                    id={`merge-${index}`}
-                                                    checked={row.merge}
-                                                    onChange={(e) => {
-                                                        setTranscription(
-                                                            (
-                                                                prevTranscription
-                                                            ) =>
-                                                                updateTranscriptionRow(
-                                                                    prevTranscription,
-                                                                    index,
-                                                                    row.match,
-                                                                    e.target
-                                                                        .checked
-                                                                )
-                                                        );
-                                                    }}
-                                                />
-                                            </div>
-                                            <textarea
-                                                className="bg-black border border-white rounded p-1"
-                                                name="match"
-                                                rows={3}
-                                                cols={60}
-                                                value={row.match ?? ""}
-                                                onChange={(e) => {
-                                                    setTranscription(
-                                                        (prevTranscription) =>
-                                                            updateTranscriptionRow(
-                                                                prevTranscription,
-                                                                index,
-                                                                e.target.value,
-                                                                row.merge
-                                                            )
-                                                    );
-                                                }}
-                                            ></textarea>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2">
-                                            {matches}
-                                        </div>
-                                    </div>
-                                );
-
-                                return (
-                                    <tr key={row.ori_text}>
-                                        {isVideoExist && (
-                                            <td className="p-2">
-                                                <button
-                                                    onClick={() => {
-                                                        handlePlayClick(
-                                                            parseInt(
-                                                                row.start_time
-                                                            ) / 1000,
-                                                            parseInt(
-                                                                row.end_time
-                                                            ) / 1000
-                                                        );
-                                                    }}
-                                                >
-                                                    Play
-                                                </button>
-                                            </td>
-                                        )}
-                                        <td className="p-2">
-                                            {row.start_time}
-                                        </td>
-                                        <td className="p-2">{row.end_time}</td>
-                                        <td className="p-2">{row.ori_text}</td>
-                                        <td className="p-2">{row.text}</td>
-                                        <td className="p-2">
-                                            {matchesContainer}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {transcription?.transcription.map((row, index) => (
+                                <TranscriptionRow
+                                    key={`${index}-${row.ori_text}`}
+                                    rowData={row}
+                                    rowIndex={index}
+                                    isVideoExist={isVideoExist}
+                                    onRowUpdate={handleRowUpdate}
+                                    handlePlayClick={handlePlayClick}
+                                />
+                            ))}
                         </tbody>
                     </table>
                 </>

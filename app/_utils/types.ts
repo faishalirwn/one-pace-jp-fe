@@ -1,4 +1,4 @@
-import { paths } from "./api-types";
+import { components, paths } from "./api-types";
 
 export type FormKeys = paths["/files/{session_id}/{file_type}"]["post"]['parameters']['path']['file_type'];
 
@@ -14,4 +14,6 @@ export type Transcription = paths["/sub/{session_id}"]["get"]["responses"]["200"
 
 export type ProcessStatus = paths["/process-sub/{session_id}"]["get"]["responses"]["200"]["content"]["application/json"]["status"];
 
-export type SubMatches = paths["/sub/{session_id}"]["put"]["requestBody"]["content"]["application/json"]["transcription"];
+export type SubMatchesPartial = paths["/sub/{session_id}"]["put"]["requestBody"]["content"]["application/json"]["transcription"];
+
+export type SubMatches = components["schemas"]["SubMatches"]
