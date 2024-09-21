@@ -14,7 +14,11 @@ async function deleteSession(sessionId: string) {
     });
 }
 
-export default function SessionList({ sessions }: { sessions: string[] }) {
+export default function SessionList({
+    sessions,
+}: {
+    sessions: string[] | undefined;
+}) {
     const [sessionList, setSessionList] = useState(sessions);
     const pathname = usePathname();
     const router = useRouter();
@@ -24,6 +28,14 @@ export default function SessionList({ sessions }: { sessions: string[] }) {
         const sessions = sessionsRes.session_list;
         setSessionList(sessions);
     };
+
+    useEffect(() => {
+        updateSessions();
+    }, [pathname]);
+
+    if (!sessionList) {
+        return null;
+    }
 
     const sessionElList = sessionList.map((session: string) => {
         return (
@@ -48,10 +60,6 @@ export default function SessionList({ sessions }: { sessions: string[] }) {
             </div>
         );
     });
-
-    useEffect(() => {
-        updateSessions();
-    }, [pathname]);
 
     return <div className="flex flex-col">{sessionElList}</div>;
 }

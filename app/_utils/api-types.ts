@@ -215,7 +215,7 @@ export interface components {
              */
             message: string;
             /** Session List */
-            session_list: string[];
+            session_list?: string[];
         };
         /** SessionProcess */
         SessionProcess: {
