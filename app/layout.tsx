@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "One Pace JP dev",
+    title: "One Pace JP",
     description: "One Pace japanese subtitle maker",
 };
 
